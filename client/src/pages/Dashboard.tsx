@@ -2,7 +2,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocalAuth } from "@/contexts/AuthContext";
-import { Users, BarChart3, Settings, LogOut } from "lucide-react";
+import { Users, BarChart3, Settings, LogOut, Bell, TrendingUp } from "lucide-react";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -37,6 +37,23 @@ export default function Dashboard() {
     },
   ];
 
+  const quickActions = [
+    {
+      title: "التنبيهات",
+      description: "إرسال تنبيهات للطلاب المتأخرين",
+      icon: Bell,
+      path: "/notifications",
+      color: "bg-orange-500",
+    },
+    {
+      title: "الإحصائيات المتقدمة",
+      description: "تحليل شامل للأداء والاتجاهات",
+      icon: TrendingUp,
+      path: "/advanced-analytics",
+      color: "bg-pink-500",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       {/* Header with Logout */}
@@ -64,7 +81,39 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Menu Cards */}
+        {/* Quick Actions */}
+        <div className="mb-12">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">الإجراءات السريعة</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {quickActions.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Card
+                  key={item.path}
+                  className="hover:shadow-lg transition-shadow cursor-pointer group"
+                  onClick={() => setLocation(item.path)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`${item.color} w-10 h-10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                        <Icon className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-sm">{item.title}</CardTitle>
+                        <CardDescription className="text-xs">{item.description}</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Main Menu Cards */}
+        <div className="mb-4">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">الأقسام الرئيسية</h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -78,17 +127,9 @@ export default function Dashboard() {
                   <div className={`${item.color} w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <CardTitle className="text-xl">{item.title}</CardTitle>
+                  <CardTitle>{item.title}</CardTitle>
                   <CardDescription>{item.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Button
-                    variant="outline"
-                    className="w-full group-hover:bg-blue-50 dark:group-hover:bg-blue-950 transition-colors"
-                  >
-                    فتح
-                  </Button>
-                </CardContent>
               </Card>
             );
           })}

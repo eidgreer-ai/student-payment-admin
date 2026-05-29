@@ -75,7 +75,7 @@ export default function Accounting() {
       item.student.name.toLowerCase().includes(searchName.toLowerCase())
     );
   }
-  if (selectedGroup) {
+  if (selectedGroup && selectedGroup !== "all") {
     filteredUnpaidStudents = filteredUnpaidStudents.filter((item: any) =>
       item.group.id.toString() === selectedGroup
     );
@@ -140,10 +140,15 @@ ${filteredUnpaidStudents.map((s: any) => `${s.student.name} - ${s.group.name} - 
               <p className="text-slate-600 dark:text-slate-300">عرض الإحصائيات والتقارير المالية</p>
             </div>
           </div>
-          <Button onClick={handleExportPDF} className="gap-2">
-            <Download className="w-4 h-4" />
-            تصدير التقرير
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setLocation("/advanced-analytics")} variant="outline">
+              الإحصائيات المتقدمة
+            </Button>
+            <Button onClick={handleExportPDF} className="gap-2">
+              <Download className="w-4 h-4" />
+              تصدير التقرير
+            </Button>
+          </div>
         </div>
 
         {/* Statistics Cards */}
@@ -263,7 +268,7 @@ ${filteredUnpaidStudents.map((s: any) => `${s.student.name} - ${s.group.name} - 
                     <SelectValue placeholder="اختر مجموعة" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">جميع المجموعات</SelectItem>
+                    <SelectItem value="all">جميع المجموعات</SelectItem>
                     {groups.map((group: any) => (
                       <SelectItem key={group.id} value={group.id.toString()}>
                         {group.name}
@@ -279,7 +284,7 @@ ${filteredUnpaidStudents.map((s: any) => `${s.student.name} - ${s.group.name} - 
                     <SelectValue placeholder="اختر شهر" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">جميع الشهور</SelectItem>
+                    <SelectItem value="all">جميع الشهور</SelectItem>
                     {MONTHS.map((month) => (
                       <SelectItem key={month.num} value={month.num.toString()}>
                         الشهر {month.name}

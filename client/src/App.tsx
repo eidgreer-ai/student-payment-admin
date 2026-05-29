@@ -9,6 +9,8 @@ import Dashboard from "./pages/Dashboard";
 import Groups from "./pages/Groups";
 import GroupDetail from "./pages/GroupDetail";
 import Accounting from "./pages/Accounting";
+import AdvancedAnalytics from "./pages/AdvancedAnalytics";
+import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import { Spinner } from "./components/ui/spinner";
@@ -49,6 +51,8 @@ function Router() {
       <Route path="/groups" component={() => <ProtectedRoute component={Groups} />} />
       <Route path="/groups/:id" component={() => <ProtectedRoute component={GroupDetail} />} />
       <Route path="/accounting" component={() => <ProtectedRoute component={Accounting} />} />
+      <Route path="/advanced-analytics" component={() => <ProtectedRoute component={AdvancedAnalytics} />} />
+      <Route path="/notifications" component={() => <ProtectedRoute component={Notifications} />} />
       <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
