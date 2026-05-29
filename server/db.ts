@@ -129,6 +129,12 @@ export async function deleteGroup(id: number): Promise<void> {
 }
 
 // ===== الطلاب =====
+export async function getAllStudents(): Promise<Student[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(students).orderBy(students.serialNumber);
+}
+
 export async function getStudentsByGroupId(groupId: number): Promise<Student[]> {
   const db = await getDb();
   if (!db) return [];
@@ -168,6 +174,12 @@ export async function deleteStudent(id: number): Promise<void> {
 }
 
 // ===== المدفوعات =====
+export async function getAllPayments(): Promise<Payment[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(payments).orderBy(payments.month, payments.year);
+}
+
 export async function getPaymentsByStudentId(studentId: number): Promise<Payment[]> {
   const db = await getDb();
   if (!db) return [];

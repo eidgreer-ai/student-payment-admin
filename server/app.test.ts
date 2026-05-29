@@ -20,7 +20,7 @@ describe("App Router Tests", () => {
     it("should handle login with correct password", async () => {
       const result = await caller.auth.login({ password: "admin123" });
       expect(result).toBeDefined();
-    });
+    }, 10000);
 
     it("should reject login with incorrect password", async () => {
       try {

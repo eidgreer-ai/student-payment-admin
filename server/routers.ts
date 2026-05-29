@@ -73,6 +73,9 @@ export const appRouter = router({
 
   // ===== الطلاب =====
   students: router({
+    list: publicProcedure.query(async () => {
+      return await db.getAllStudents();
+    }),
     listByGroup: publicProcedure
       .input(z.object({ groupId: z.number() }))
       .query(async ({ input }) => {
@@ -116,6 +119,9 @@ export const appRouter = router({
 
   // ===== المدفوعات =====
   payments: router({
+    list: publicProcedure.query(async () => {
+      return await db.getAllPayments();
+    }),
     listByStudent: publicProcedure
       .input(z.object({ studentId: z.number() }))
       .query(async ({ input }) => {
