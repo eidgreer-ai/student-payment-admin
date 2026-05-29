@@ -1,10 +1,17 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, BarChart3, Settings } from "lucide-react";
+import { useLocalAuth } from "@/contexts/AuthContext";
+import { Users, BarChart3, Settings, LogOut } from "lucide-react";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
+  const { logout } = useLocalAuth();
+
+  const handleLogout = () => {
+    logout();
+    setLocation("/");
+  };
 
   const menuItems = [
     {
@@ -31,15 +38,29 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      {/* Header with Logout */}
+      <div className="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">تطبيق إدارة الطلاب والمدفوعات</h1>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-4 h-4" />
+            تسجيل الخروج
+          </Button>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto p-4 md:p-8">
         {/* Header */}
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-2">
-            تطبيق إدارة الطلاب والمدفوعات
-          </h1>
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">مرحباً بك</h2>
           <p className="text-lg text-slate-600 dark:text-slate-300">
-            نظام متكامل لإدارة مجموعات الطلاب وتتبع المدفوعات الشهرية
+            اختر أحد الأقسام أدناه للبدء
           </p>
         </div>
 

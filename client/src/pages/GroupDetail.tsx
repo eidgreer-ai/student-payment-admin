@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
-import { Plus, Edit2, Trash2, ChevronLeft } from "lucide-react";
+import { Plus, Trash2, ChevronLeft } from "lucide-react";
 
 const MONTHS = [
   { num: 8, name: "8" },
@@ -33,14 +33,19 @@ export default function GroupDetail() {
   const [currentYear] = useState(new Date().getFullYear());
 
   const groupId = parseInt(id || "0");
-  const groupQuery = trpc.groups.getById.useQuery({ id: groupId });
-  const studentsQuery = trpc.students.listByGroup.useQuery({ groupId });
+  const groupQuery = trpc.groups.getById.useQuery({ id: groupId }, { enabled: groupId > 0 });
+  const studentsQuery = trpc.students.listByGroup.useQuery({ groupId }, { enabled: groupId > 0 });
   const createStudentMutation = trpc.students.create.useMutation();
   const deleteStudentMutation = trpc.students.delete.useMutation();
 
   const handleCreateStudent = async () => {
-    if (!newStudentName.trim() || newStudentSerial === "") {
-      toast.error("الرجاء إدخال بيانات الطالب");
+    if (!newStudentName.trim()) {
+      toast.error("الرجاء إدخال اسم الطالب");
+      return;
+    }
+
+    if (newStudentSerial === "") {
+      toast.error("الرجاء إدخال المسلسل");
       return;
     }
 
@@ -60,7 +65,7 @@ export default function GroupDetail() {
       setNewStudentName("");
       setNewStudentSerial("");
       setIsDialogOpen(false);
-      studentsQuery.refetch();
+      await studentsQuery.refetch();
     } catch (error: any) {
       toast.error(error.message || "فشل إضافة الطالب");
     }
@@ -72,7 +77,7 @@ export default function GroupDetail() {
     try {
       await deleteStudentMutation.mutateAsync({ id });
       toast.success("تم حذف الطالب بنجاح");
-      studentsQuery.refetch();
+      await studentsQuery.refetch();
     } catch (error: any) {
       toast.error(error.message || "فشل حذف الطالب");
     }
@@ -88,6 +93,17 @@ export default function GroupDetail() {
 
   const group = groupQuery.data;
   const students = studentsQuery.data || [];
+
+  if (!group) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-slate-600 dark:text-slate-300 mb-4">لم يتم العثور على المجموعة</p>
+          <Button onClick={() => setLocation("/groups")}>العودة للمجموعات</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
@@ -127,6 +143,7 @@ export default function GroupDetail() {
                     placeholder="1"
                     value={newStudentSerial}
                     onChange={(e) => setNewStudentSerial(e.target.value)}
+                    min="1"
                   />
                 </div>
                 <div>
@@ -156,37 +173,38 @@ export default function GroupDetail() {
             <CardDescription>جدول المدفوعات الشهرية للطلاب</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-right">م</TableHead>
-                    <TableHead className="text-right">اسم الطالب</TableHead>
-                    {MONTHS.map((month) => (
-                      <TableHead key={month.num} className="text-center text-xs">
-                        {month.name}
-                      </TableHead>
-                    ))}
-                    <TableHead className="text-center">الإجراءات</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {students.map((student) => (
-                    <StudentRow
-                      key={student.id}
-                      student={student}
-                      currentYear={currentYear}
-                      onDelete={() => handleDeleteStudent(student.id)}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            {students.length === 0 && (
+            {students.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-slate-600 dark:text-slate-300 mb-4">لا توجد طلاب في هذه المجموعة</p>
                 <Button onClick={() => setIsDialogOpen(true)}>إضافة طالب أول</Button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">م</TableHead>
+                      <TableHead className="text-right">اسم الطالب</TableHead>
+                      {MONTHS.map((month) => (
+                        <TableHead key={month.num} className="text-center text-xs">
+                          {month.name}
+                        </TableHead>
+                      ))}
+                      <TableHead className="text-center">الإجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {students.map((student) => (
+                      <StudentRow
+                        key={student.id}
+                        student={student}
+                        currentYear={currentYear}
+                        onDelete={() => handleDeleteStudent(student.id)}
+                        onRefresh={() => studentsQuery.refetch()}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </CardContent>
@@ -196,9 +214,11 @@ export default function GroupDetail() {
   );
 }
 
-function StudentRow({ student, currentYear, onDelete }: any) {
+function StudentRow({ student, currentYear, onDelete, onRefresh }: any) {
   const paymentsQuery = trpc.payments.listByStudent.useQuery({ studentId: student.id });
   const updatePaymentMutation = trpc.payments.createOrUpdate.useMutation();
+  const [editingMonth, setEditingMonth] = useState<number | null>(null);
+  const [editAmount, setEditAmount] = useState("");
 
   const handleTogglePayment = async (month: number, isPaid: boolean) => {
     try {
@@ -206,12 +226,43 @@ function StudentRow({ student, currentYear, onDelete }: any) {
         studentId: student.id,
         month,
         year: currentYear,
-        amount: "0",
+        amount: editAmount || "0",
         isPaid: !isPaid,
       });
-      paymentsQuery.refetch();
+      await paymentsQuery.refetch();
+      setEditingMonth(null);
+      setEditAmount("");
     } catch (error: any) {
       toast.error(error.message || "فشل تحديث المدفوعات");
+    }
+  };
+
+  const handleSaveAmount = async (month: number, isPaid: boolean) => {
+    if (!editAmount.trim()) {
+      toast.error("الرجاء إدخال المبلغ");
+      return;
+    }
+
+    try {
+      const amount = parseFloat(editAmount);
+      if (isNaN(amount)) {
+        toast.error("المبلغ يجب أن يكون رقماً");
+        return;
+      }
+
+      await updatePaymentMutation.mutateAsync({
+        studentId: student.id,
+        month,
+        year: currentYear,
+        amount: amount.toFixed(2),
+        isPaid: isPaid,
+      });
+      await paymentsQuery.refetch();
+      setEditingMonth(null);
+      setEditAmount("");
+      toast.success("تم تحديث المبلغ بنجاح");
+    } catch (error: any) {
+      toast.error(error.message || "فشل تحديث المبلغ");
     }
   };
 
@@ -224,21 +275,46 @@ function StudentRow({ student, currentYear, onDelete }: any) {
       {MONTHS.map((month) => {
         const payment = payments.find((p) => p.month === month.num && p.year === currentYear);
         const isPaid = payment?.isPaid || false;
+        const isEditing = editingMonth === month.num;
+
         return (
           <TableCell
             key={month.num}
-            className="text-center p-2 cursor-pointer"
-            onClick={() => handleTogglePayment(month.num, isPaid)}
+            className="text-center p-2"
           >
-            <div
-              className={`inline-block w-8 h-8 rounded flex items-center justify-center text-xs font-bold transition-colors ${
-                isPaid
-                  ? "bg-green-500 text-white"
-                  : "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200"
-              }`}
-            >
-              {isPaid ? "✓" : "✗"}
-            </div>
+            {isEditing ? (
+              <div className="flex gap-1 items-center justify-center">
+                <Input
+                  type="number"
+                  placeholder="المبلغ"
+                  value={editAmount}
+                  onChange={(e) => setEditAmount(e.target.value)}
+                  className="w-16 h-8 text-xs"
+                  step="0.01"
+                />
+                <Button
+                  size="sm"
+                  className="h-8 px-2 text-xs"
+                  onClick={() => handleSaveAmount(month.num, isPaid)}
+                >
+                  حفظ
+                </Button>
+              </div>
+            ) : (
+              <div
+                className={`inline-block px-3 py-2 rounded cursor-pointer transition-colors text-xs font-bold ${
+                  isPaid
+                    ? "bg-green-500 text-white hover:bg-green-600"
+                    : "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 hover:bg-red-200 dark:hover:bg-red-800"
+                }`}
+                onClick={() => {
+                  setEditingMonth(month.num);
+                  setEditAmount(payment?.amount || "");
+                }}
+              >
+                {isPaid ? "✓" : "✗"} {payment?.amount || "-"}
+              </div>
+            )}
           </TableCell>
         );
       })}
