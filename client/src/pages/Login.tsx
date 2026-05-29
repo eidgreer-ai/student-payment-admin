@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useLocalAuth } from "@/contexts/AuthContext";
 import { trpc } from "@/lib/trpc";
 import { Lock } from "lucide-react";
 
 export default function Login() {
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [, setLocation] = useLocation();
+  const { login } = useLocalAuth();
   const loginMutation = trpc.auth.login.useMutation();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -19,12 +22,24 @@ export default function Login() {
       return;
     }
 
+    setIsLoading(true);
     try {
+      // Verify password with backend
       await loginMutation.mutateAsync({ password });
+      
+      // If verification succeeds, update local auth state
+      await login(password);
+      
       toast.success("تم تسجيل الدخول بنجاح");
-      setLocation("/");
+      
+      // Navigate to dashboard
+      setTimeout(() => {
+        setLocation("/");
+      }, 100);
     } catch (error: any) {
-      toast.error(error.message || "فشل تسجيل الدخول");
+      toast.error(error.message || "فشل تسجيل الدخول - كلمة المرور غير صحيحة");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -52,16 +67,16 @@ export default function Login() {
                 placeholder="أدخل كلمة المرور"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={loginMutation.isPending}
+                disabled={isLoading}
                 autoFocus
               />
             </div>
             <Button
               type="submit"
               className="w-full"
-              disabled={loginMutation.isPending}
+              disabled={isLoading}
             >
-              {loginMutation.isPending ? "جاري التحقق..." : "دخول"}
+              {isLoading ? "جاري التحقق..." : "دخول"}
             </Button>
           </form>
         </CardContent>

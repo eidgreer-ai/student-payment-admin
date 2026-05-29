@@ -8,11 +8,13 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLocalAuth } from "@/contexts/AuthContext";
 import { ChevronLeft, Lock, Download, Upload, Moon } from "lucide-react";
 
 export default function Settings() {
   const [, setLocation] = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const { logout } = useLocalAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -43,10 +45,14 @@ export default function Settings() {
         currentPassword,
         newPassword,
       });
-      toast.success("تم تغيير كلمة المرور بنجاح");
+      toast.success("تم تغيير كلمة المرور بنجاح - سيتم تسجيل خروجك");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+      setTimeout(() => {
+        logout();
+        setLocation("/");
+      }, 1500);
     } catch (error: any) {
       toast.error(error.message || "فشل تغيير كلمة المرور");
     }

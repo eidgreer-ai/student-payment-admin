@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { AuthProvider, useLocalAuth } from "./contexts/AuthContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Groups from "./pages/Groups";
@@ -10,11 +11,10 @@ import GroupDetail from "./pages/GroupDetail";
 import Accounting from "./pages/Accounting";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import { useAuth } from "./_core/hooks/useAuth";
 import { Spinner } from "./components/ui/spinner";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType<any> }) {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading } = useLocalAuth();
 
   if (loading) {
     return (
@@ -33,7 +33,7 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
 }
 
 function Router() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading } = useLocalAuth();
 
   if (loading) {
     return (
@@ -59,12 +59,14 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="light" switchable>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider defaultTheme="light" switchable>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }
