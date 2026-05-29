@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
-import { Plus, Trash2, ChevronLeft } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, Edit2 } from "lucide-react";
+import { useState } from "react";
 
 const MONTHS = [
   { num: 8, name: "8" },
@@ -24,19 +24,40 @@ const MONTHS = [
   { num: 6, name: "6" },
 ];
 
+// دالة لحساب السنة الدراسية والشهر الحالي
+function getSchoolYearInfo() {
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1; // 1-12
+  const currentYear = now.getFullYear();
+  
+  // إذا كان الشهر من 8-12 فالسنة الدراسية = السنة الحالية
+  // إذا كان الشهر من 1-6 فالسنة الدراسية = السنة السابقة
+  const schoolYear = currentMonth >= 8 ? currentYear : currentYear - 1;
+  
+  return {
+    schoolYear,
+    currentMonth,
+    currentYear,
+  };
+}
+
 export default function GroupDetail() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const [newStudentName, setNewStudentName] = useState("");
   const [newStudentSerial, setNewStudentSerial] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [currentYear] = useState(new Date().getFullYear());
+  const [isEditingFee, setIsEditingFee] = useState(false);
+  const [newFee, setNewFee] = useState("");
+  
+  const { schoolYear, currentMonth } = getSchoolYearInfo();
 
   const groupId = parseInt(id || "0");
   const groupQuery = trpc.groups.getById.useQuery({ id: groupId }, { enabled: groupId > 0 });
   const studentsQuery = trpc.students.listByGroup.useQuery({ groupId }, { enabled: groupId > 0 });
   const createStudentMutation = trpc.students.create.useMutation();
   const deleteStudentMutation = trpc.students.delete.useMutation();
+  const updateGroupMutation = trpc.groups.update.useMutation();
 
   const handleCreateStudent = async () => {
     if (!newStudentName.trim()) {
@@ -83,6 +104,34 @@ export default function GroupDetail() {
     }
   };
 
+  const handleUpdateFee = async () => {
+    if (!newFee.trim()) {
+      toast.error("الرجاء إدخال قيمة الاشتراك");
+      return;
+    }
+
+    try {
+      const fee = parseFloat(newFee);
+      if (isNaN(fee)) {
+        toast.error("القيمة يجب أن تكون رقماً");
+        return;
+      }
+
+      await updateGroupMutation.mutateAsync({
+        id: groupId,
+        name: groupQuery.data?.name || "",
+        description: groupQuery.data?.description || undefined,
+        monthlySubscriptionFee: fee,
+      });
+      toast.success("تم تحديث قيمة الاشتراك بنجاح");
+      setIsEditingFee(false);
+      setNewFee("");
+      await groupQuery.refetch();
+    } catch (error: any) {
+      toast.error(error.message || "فشل تحديث قيمة الاشتراك");
+    }
+  };
+
   if (groupQuery.isLoading || studentsQuery.isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -120,7 +169,7 @@ export default function GroupDetail() {
             </Button>
             <div>
               <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{group?.name}</h1>
-              <p className="text-slate-600 dark:text-slate-300">{students.length} طالب</p>
+              <p className="text-slate-600 dark:text-slate-300">السنة الدراسية: {schoolYear}/{schoolYear + 1} • {students.length} طالب</p>
             </div>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -166,11 +215,64 @@ export default function GroupDetail() {
           </Dialog>
         </div>
 
+        {/* Monthly Subscription Fee Card */}
+        <Card className="mb-6 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+          <CardHeader>
+            <CardTitle className="text-lg">قيمة الاشتراك الشهري</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isEditingFee ? (
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  value={newFee}
+                  onChange={(e) => setNewFee(e.target.value)}
+                  step="0.01"
+                  min="0"
+                />
+                <Button
+                  onClick={handleUpdateFee}
+                  disabled={updateGroupMutation.isPending}
+                >
+                  حفظ
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditingFee(false);
+                    setNewFee("");
+                  }}
+                >
+                  إلغاء
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  {group.monthlySubscriptionFee || "0.00"} ج.م
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setNewFee(group.monthlySubscriptionFee?.toString() || "");
+                    setIsEditingFee(true);
+                  }}
+                >
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  تعديل
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Students Table */}
         <Card>
           <CardHeader>
             <CardTitle>الطلاب والمدفوعات</CardTitle>
-            <CardDescription>جدول المدفوعات الشهرية للطلاب</CardDescription>
+            <CardDescription>جدول المدفوعات الشهرية للطلاب (السنة الدراسية {schoolYear}/{schoolYear + 1})</CardDescription>
           </CardHeader>
           <CardContent>
             {students.length === 0 ? (
@@ -185,11 +287,22 @@ export default function GroupDetail() {
                     <TableRow>
                       <TableHead className="text-right">م</TableHead>
                       <TableHead className="text-right">اسم الطالب</TableHead>
-                      {MONTHS.map((month) => (
-                        <TableHead key={month.num} className="text-center text-xs">
-                          {month.name}
-                        </TableHead>
-                      ))}
+                      {MONTHS.map((month) => {
+                        const isCurrentMonth = month.num === currentMonth;
+                        return (
+                          <TableHead
+                            key={month.num}
+                            className={`text-center text-xs font-bold ${
+                              isCurrentMonth
+                                ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-900 dark:text-yellow-100"
+                                : ""
+                            }`}
+                          >
+                            {month.name}
+                            {isCurrentMonth && " ⭐"}
+                          </TableHead>
+                        );
+                      })}
                       <TableHead className="text-center">الإجراءات</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -198,7 +311,8 @@ export default function GroupDetail() {
                       <StudentRow
                         key={student.id}
                         student={student}
-                        currentYear={currentYear}
+                        schoolYear={schoolYear}
+                        currentMonth={currentMonth}
                         onDelete={() => handleDeleteStudent(student.id)}
                         onRefresh={() => studentsQuery.refetch()}
                       />
@@ -214,7 +328,7 @@ export default function GroupDetail() {
   );
 }
 
-function StudentRow({ student, currentYear, onDelete, onRefresh }: any) {
+function StudentRow({ student, schoolYear, currentMonth, onDelete, onRefresh }: any) {
   const paymentsQuery = trpc.payments.listByStudent.useQuery({ studentId: student.id });
   const updatePaymentMutation = trpc.payments.createOrUpdate.useMutation();
   const [editingMonth, setEditingMonth] = useState<number | null>(null);
@@ -225,13 +339,14 @@ function StudentRow({ student, currentYear, onDelete, onRefresh }: any) {
       await updatePaymentMutation.mutateAsync({
         studentId: student.id,
         month,
-        year: currentYear,
+        year: schoolYear,
         amount: editAmount || "0",
         isPaid: !isPaid,
       });
       await paymentsQuery.refetch();
       setEditingMonth(null);
       setEditAmount("");
+      onRefresh();
     } catch (error: any) {
       toast.error(error.message || "فشل تحديث المدفوعات");
     }
@@ -253,16 +368,17 @@ function StudentRow({ student, currentYear, onDelete, onRefresh }: any) {
       await updatePaymentMutation.mutateAsync({
         studentId: student.id,
         month,
-        year: currentYear,
-        amount: amount.toFixed(2),
-        isPaid: isPaid,
+        year: schoolYear,
+        amount: editAmount,
+        isPaid: true,
       });
       await paymentsQuery.refetch();
       setEditingMonth(null);
       setEditAmount("");
-      toast.success("تم تحديث المبلغ بنجاح");
+      onRefresh();
+      toast.success("تم تحديث المدفوعات بنجاح");
     } catch (error: any) {
-      toast.error(error.message || "فشل تحديث المبلغ");
+      toast.error(error.message || "فشل تحديث المدفوعات");
     }
   };
 
@@ -270,50 +386,49 @@ function StudentRow({ student, currentYear, onDelete, onRefresh }: any) {
 
   return (
     <TableRow>
-      <TableCell className="text-right">{student.serialNumber}</TableCell>
-      <TableCell className="text-right font-medium">{student.name}</TableCell>
+      <TableCell className="font-medium">{student.serialNumber}</TableCell>
+      <TableCell className="font-medium">{student.name}</TableCell>
       {MONTHS.map((month) => {
-        const payment = payments.find((p) => p.month === month.num && p.year === currentYear);
+        const payment = payments.find((p: any) => p.month === month.num && p.year === schoolYear);
         const isPaid = payment?.isPaid || false;
-        const isEditing = editingMonth === month.num;
+        const isCurrentMonth = month.num === currentMonth;
 
         return (
-          <TableCell
-            key={month.num}
-            className="text-center p-2"
-          >
-            {isEditing ? (
-              <div className="flex gap-1 items-center justify-center">
+          <TableCell key={month.num} className="text-center p-1">
+            {editingMonth === month.num ? (
+              <div className="flex gap-1">
                 <Input
                   type="number"
-                  placeholder="المبلغ"
+                  placeholder="0.00"
                   value={editAmount}
                   onChange={(e) => setEditAmount(e.target.value)}
                   className="w-16 h-8 text-xs"
                   step="0.01"
+                  min="0"
                 />
                 <Button
                   size="sm"
                   className="h-8 px-2 text-xs"
                   onClick={() => handleSaveAmount(month.num, isPaid)}
+                  disabled={updatePaymentMutation.isPending}
                 >
-                  حفظ
+                  ✓
                 </Button>
               </div>
             ) : (
-              <div
-                className={`inline-block px-3 py-2 rounded cursor-pointer transition-colors text-xs font-bold ${
-                  isPaid
-                    ? "bg-green-500 text-white hover:bg-green-600"
-                    : "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 hover:bg-red-200 dark:hover:bg-red-800"
-                }`}
+              <button
                 onClick={() => {
                   setEditingMonth(month.num);
-                  setEditAmount(payment?.amount || "");
+                  setEditAmount(payment?.amount?.toString() || "0");
                 }}
+                className={`w-full py-2 px-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+                  isPaid
+                    ? "bg-green-500 text-white hover:bg-green-600"
+                    : "bg-red-500 text-white hover:bg-red-600"
+                } ${isCurrentMonth ? "ring-2 ring-yellow-400" : ""}`}
               >
-                {isPaid ? "✓" : "✗"} {payment?.amount || "-"}
-              </div>
+                {isPaid ? "✓" : "✗"}
+              </button>
             )}
           </TableCell>
         );

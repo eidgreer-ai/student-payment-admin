@@ -48,19 +48,21 @@ export const appRouter = router({
         return await db.getGroupById(input.id);
       }),
     create: publicProcedure
-      .input(z.object({ name: z.string().min(1), description: z.string().optional() }))
+      .input(z.object({ name: z.string().min(1), description: z.string().optional(), monthlySubscriptionFee: z.number().optional() }))
       .mutation(async ({ input }) => {
         return await db.createGroup({
           name: input.name,
           description: input.description,
+          monthlySubscriptionFee: input.monthlySubscriptionFee?.toString(),
         });
       }),
     update: publicProcedure
-      .input(z.object({ id: z.number(), name: z.string().min(1), description: z.string().optional() }))
+      .input(z.object({ id: z.number(), name: z.string().min(1), description: z.string().optional(), monthlySubscriptionFee: z.number().optional() }))
       .mutation(async ({ input }) => {
         return await db.updateGroup(input.id, {
           name: input.name,
           description: input.description,
+          monthlySubscriptionFee: input.monthlySubscriptionFee?.toString(),
         });
       }),
     delete: publicProcedure

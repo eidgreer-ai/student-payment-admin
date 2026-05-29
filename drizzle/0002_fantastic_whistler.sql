@@ -1,0 +1,1 @@
+ALTER TABLE `groups` ADD `monthlySubscriptionFee` decimal(10,2) DEFAULT '0';

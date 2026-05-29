@@ -13,6 +13,7 @@ export default function Groups() {
   const [, setLocation] = useLocation();
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDesc, setNewGroupDesc] = useState("");
+  const [newGroupFee, setNewGroupFee] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const groupsQuery = trpc.groups.list.useQuery();
@@ -30,10 +31,12 @@ export default function Groups() {
       await createGroupMutation.mutateAsync({
         name: newGroupName,
         description: newGroupDesc,
+        monthlySubscriptionFee: newGroupFee ? parseFloat(newGroupFee) : 0,
       });
       toast.success("تم إنشاء المجموعة بنجاح");
       setNewGroupName("");
       setNewGroupDesc("");
+      setNewGroupFee("");
       setIsDialogOpen(false);
       groupsQuery.refetch();
     } catch (error: any) {
@@ -106,6 +109,17 @@ export default function Groups() {
                     placeholder="وصف المجموعة"
                     value={newGroupDesc}
                     onChange={(e) => setNewGroupDesc(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">قيمة الاشتراك الشهري (ج.م)</label>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={newGroupFee}
+                    onChange={(e) => setNewGroupFee(e.target.value)}
+                    step="0.01"
+                    min="0"
                   />
                 </div>
                 <Button
