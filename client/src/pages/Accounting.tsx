@@ -10,17 +10,17 @@ import { trpc } from "@/lib/trpc";
 import { ChevronLeft, DollarSign, Users, TrendingUp } from "lucide-react";
 
 const MONTHS = [
-  { num: 8, name: "أغسطس" },
-  { num: 9, name: "سبتمبر" },
-  { num: 10, name: "أكتوبر" },
-  { num: 11, name: "نوفمبر" },
-  { num: 12, name: "ديسمبر" },
-  { num: 1, name: "يناير" },
-  { num: 2, name: "فبراير" },
-  { num: 3, name: "مارس" },
-  { num: 4, name: "أبريل" },
-  { num: 5, name: "مايو" },
-  { num: 6, name: "يونيو" },
+  { num: 8, name: "8" },
+  { num: 9, name: "9" },
+  { num: 10, name: "10" },
+  { num: 11, name: "11" },
+  { num: 12, name: "12" },
+  { num: 1, name: "1" },
+  { num: 2, name: "2" },
+  { num: 3, name: "3" },
+  { num: 4, name: "4" },
+  { num: 5, name: "5" },
+  { num: 6, name: "6" },
 ];
 
 export default function Accounting() {

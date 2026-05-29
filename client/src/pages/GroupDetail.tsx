@@ -11,17 +11,17 @@ import { trpc } from "@/lib/trpc";
 import { Plus, Edit2, Trash2, ChevronLeft } from "lucide-react";
 
 const MONTHS = [
-  { num: 8, name: "أغسطس" },
-  { num: 9, name: "سبتمبر" },
-  { num: 10, name: "أكتوبر" },
-  { num: 11, name: "نوفمبر" },
-  { num: 12, name: "ديسمبر" },
-  { num: 1, name: "يناير" },
-  { num: 2, name: "فبراير" },
-  { num: 3, name: "مارس" },
-  { num: 4, name: "أبريل" },
-  { num: 5, name: "مايو" },
-  { num: 6, name: "يونيو" },
+  { num: 8, name: "8" },
+  { num: 9, name: "9" },
+  { num: 10, name: "10" },
+  { num: 11, name: "11" },
+  { num: 12, name: "12" },
+  { num: 1, name: "1" },
+  { num: 2, name: "2" },
+  { num: 3, name: "3" },
+  { num: 4, name: "4" },
+  { num: 5, name: "5" },
+  { num: 6, name: "6" },
 ];
 
 export default function GroupDetail() {
@@ -39,16 +39,22 @@ export default function GroupDetail() {
   const deleteStudentMutation = trpc.students.delete.useMutation();
 
   const handleCreateStudent = async () => {
-    if (!newStudentName.trim() || !newStudentSerial) {
+    if (!newStudentName.trim() || newStudentSerial === "") {
       toast.error("الرجاء إدخال بيانات الطالب");
       return;
     }
 
     try {
+      const serialNum = parseInt(newStudentSerial);
+      if (isNaN(serialNum)) {
+        toast.error("المسلسل يجب أن يكون رقماً");
+        return;
+      }
+
       await createStudentMutation.mutateAsync({
         groupId,
         name: newStudentName,
-        serialNumber: parseInt(newStudentSerial),
+        serialNumber: serialNum,
       });
       toast.success("تم إضافة الطالب بنجاح");
       setNewStudentName("");
