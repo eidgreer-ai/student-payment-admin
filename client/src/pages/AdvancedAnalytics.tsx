@@ -222,7 +222,7 @@ export default function AdvancedAnalytics() {
                   />
                 </div>
                 <p className="text-xs text-slate-600 dark:text-slate-300 mt-2">
-                  {group.paid.toFixed(2)} / {group.total.toFixed(2)} ريال
+                  {group.paid.toFixed(2)} / {group.total.toFixed(2)} ج.م
                 </p>
               </CardContent>
             </Card>

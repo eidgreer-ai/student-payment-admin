@@ -104,12 +104,12 @@ export default function Accounting() {
 تقرير الجرد والحسابات
 السنة: ${currentYear}
 
-إجمالي التحصيل السنوي: ${yearlyTotal.toFixed(2)} ريال
+إجمالي التحصيل السنوي: ${yearlyTotal.toFixed(2)} ج.م
 عدد الطلاب غير المسددين: ${filteredUnpaidStudents.length}
-إجمالي المبالغ المتأخرة: ${totalUnpaidAmount.toFixed(2)} ريال
+إجمالي المبالغ المتأخرة: ${totalUnpaidAmount.toFixed(2)} ج.م
 
 التفاصيل الشهرية:
-${monthlyTotals.map((m) => `الشهر ${m.month}: ${m.total.toFixed(2)} ريال (${m.count} طالب)`).join("\n")}
+${monthlyTotals.map((m) => `الشهر ${m.month}: ${m.total.toFixed(2)} ج.م (${m.count} طالب)`).join("\n")}
 
 الطلاب غير المسددين:
 ${filteredUnpaidStudents.map((s: any) => `${s.student.name} - ${s.group.name} - ${s.unpaidMonths} شهور متأخرة`).join("\n")}
@@ -159,7 +159,7 @@ ${filteredUnpaidStudents.map((s: any) => `${s.student.name} - ${s.group.name} - 
               <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{yearlyTotal.toFixed(2)} ريال</div>
+              <div className="text-2xl font-bold text-green-600">{yearlyTotal.toFixed(2)} ج.م</div>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
                 من {monthlyTotals.reduce((sum, m) => sum + m.count, 0)} عملية تحصيل
               </p>
@@ -185,7 +185,7 @@ ${filteredUnpaidStudents.map((s: any) => `${s.student.name} - ${s.group.name} - 
               <TrendingUp className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{totalUnpaidAmount.toFixed(2)} ريال</div>
+              <div className="text-2xl font-bold text-orange-600">{totalUnpaidAmount.toFixed(2)} ج.م</div>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
                 إجمالي المتأخرات
               </p>
@@ -208,7 +208,7 @@ ${filteredUnpaidStudents.map((s: any) => `${s.student.name} - ${s.group.name} - 
                   <XAxis dataKey="month" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="total" fill="#3b82f6" name="المبلغ (ريال)" />
+                  <Bar dataKey="total" fill="#3b82f6" name="المبلغ (ج.م)" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -341,7 +341,7 @@ ${filteredUnpaidStudents.map((s: any) => `${s.student.name} - ${s.group.name} - 
                             </span>
                           </TableCell>
                           <TableCell className="text-right font-bold text-orange-600">
-                            {unpaidAmount.toFixed(2)} ريال
+                            {unpaidAmount.toFixed(2)} ج.م
                           </TableCell>
                         </TableRow>
                       );

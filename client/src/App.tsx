@@ -12,6 +12,8 @@ import Accounting from "./pages/Accounting";
 import AdvancedAnalytics from "./pages/AdvancedAnalytics";
 import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
+import RolesManagement from "./pages/RolesManagement";
+import Invoices from "./pages/Invoices";
 import NotFound from "./pages/NotFound";
 import { Spinner } from "./components/ui/spinner";
 
@@ -54,6 +56,8 @@ function Router() {
       <Route path="/advanced-analytics" component={() => <ProtectedRoute component={AdvancedAnalytics} />} />
       <Route path="/notifications" component={() => <ProtectedRoute component={Notifications} />} />
       <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
+      <Route path="/roles" component={() => <ProtectedRoute component={RolesManagement} />} />
+      <Route path="/invoices" component={() => <ProtectedRoute component={Invoices} />} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

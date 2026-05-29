@@ -2,7 +2,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocalAuth } from "@/contexts/AuthContext";
-import { Users, BarChart3, Settings, LogOut, Bell, TrendingUp } from "lucide-react";
+import { Users, BarChart3, Settings, LogOut, Bell, TrendingUp, FileText } from "lucide-react";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -51,6 +51,20 @@ export default function Dashboard() {
       icon: TrendingUp,
       path: "/advanced-analytics",
       color: "bg-pink-500",
+    },
+    {
+      title: "إدارة الأدوار",
+      description: "إدارة أدوار المستخدمين والصلاحيات",
+      icon: Users,
+      path: "/roles",
+      color: "bg-indigo-500",
+    },
+    {
+      title: "الفواتير",
+      description: "فواتير الطلاب المسددين",
+      icon: FileText,
+      path: "/invoices",
+      color: "bg-cyan-500",
     },
   ];
 
